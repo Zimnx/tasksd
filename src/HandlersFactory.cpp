@@ -1,8 +1,11 @@
+#include <boost/algorithm/string.hpp>
+
 #include "HandlersFactory.h"
+#include "NotFoundHandler.h"
 
 using namespace proxygen;
 
-RequestHandler* HandlersFactory::onRequest(RequestHandler*, HTTPMessage* request) {
+RequestHandler* HandlersFactory::onRequest(RequestHandler*, HTTPMessage* request) noexcept {
   auto pathParts = splitPath(request->getPath());
   auto comparator = [&](auto pair) {
     return pair.first.size() == pathParts.size() &&
@@ -16,15 +19,9 @@ RequestHandler* HandlersFactory::onRequest(RequestHandler*, HTTPMessage* request
   }
 }
 
-std::vector<std::string> HandlersFactory::splitPath(std::string path) {
+std::vector<std::string> HandlersFactory::splitPath(std::string path) noexcept {
   std::vector<std::string> pathParts;
   boost::trim_if(path, boost::is_any_of("/"));
   boost::split(pathParts, path, boost::algorithm::is_any_of("/"));
   return pathParts;
-}
-
-template <typename T, typename... Args>
-void HandlersFactory::registerHandler(std::string resource, Args&&... args) {
-  auto pathParts = splitPath(std::move(resource));
-  m_handlers.emplace(pathParts, [&]() { return new T(m_RequestStats.get(), std::forward<Args>(args)...); });
 }

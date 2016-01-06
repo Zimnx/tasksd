@@ -3,13 +3,10 @@
 #include <folly/Portability.h>
 #include <folly/io/async/EventBaseManager.h>
 #include <proxygen/httpserver/HTTPServer.h>
-#include <boost/algorithm/string.hpp>
 #include <unistd.h>
-#include <functional>
 
 #include "EchoHandler.h"
-#include "NotFoundHandler.h"
-#include "RequestStats.h"
+#include "HandlersFactory.h"
 
 using namespace proxygen;
 

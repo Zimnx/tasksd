@@ -1,7 +1,8 @@
 project(TasksDeamon)
 set(PROJECT_EXE "tasksd")
 cmake_minimum_required(VERSION 3.2)
-aux_source_directory(. SRC_LIST)
+aux_source_directory(src/ SRC_LIST)
+include_directories(. include/)
 
 add_executable(${PROJECT_EXE} ${SRC_LIST})
 
