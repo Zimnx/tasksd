@@ -15,7 +15,7 @@ RequestHandler* HandlersFactory::onRequest(RequestHandler*, HTTPMessage* request
   if (handlerIt != m_handlers.end()) {
     return handlerIt->second();
   } else {
-    return new NotFoundHandler(m_RequestStats.get());
+    return new NotFoundHandler(m_requestStats.get());
   }
 }
 

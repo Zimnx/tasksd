@@ -7,6 +7,11 @@
 
 #include "EchoHandler.h"
 #include "HandlersFactory.h"
+#include "PutTaskHandler.h"
+
+#include "DataStorage.h"
+#include "IdGenerator.h"
+
 
 using namespace proxygen;
 
@@ -32,8 +37,11 @@ int main(int argc, char* argv[]) {
     CHECK(FLAGS_threads > 0);
   }
 
+  std::unique_ptr<IDataStorage> dataStorage = std::make_unique<DataStorage>(std::make_unique<IdGenerator>());
+
   auto handlersFactory = std::make_unique<HandlersFactory>();
   handlersFactory->registerHandler<EchoHandler>("echo");
+  handlersFactory->registerHandler<PutTaskHandler>("putTask", dataStorage.get());
 
   HTTPServerOptions options;
   options.threads = static_cast<size_t>(FLAGS_threads);

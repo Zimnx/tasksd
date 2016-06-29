@@ -4,6 +4,7 @@
 #include <proxygen/httpserver/ResponseBuilder.h>
 
 #include "RequestStats.h"
+#include <mysql++/mysql++.h>
 
 using namespace proxygen;
 
