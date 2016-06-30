@@ -48,7 +48,7 @@ void GetTaskHandler::onEOM() noexcept {
 
   ResponseBuilder(downstream_)
     .status(200, "OK")
-    .body(std::unique_ptr<folly::IOBuf>(task.task.get())) // This will double free buffer, change .task to unique_ptr
+    .body(task.task->clone())
     .header("TaskId", folly::to<std::string>(task.taskId))
     .header("Request-Number", folly::to<std::string>(m_requestStats->getRequestCount()))
     .sendWithEOM();
