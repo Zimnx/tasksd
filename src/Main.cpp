@@ -7,7 +7,12 @@
 
 #include "EchoHandler.h"
 #include "HandlersFactory.h"
+
 #include "PutTaskHandler.h"
+#include "GetTaskHandler.h"
+#include "RegisterClientHandler.h"
+#include "UnregisterClientHandler.h"
+#include "AckTaskHandler.h"
 
 #include "DataStorage.h"
 #include "IdGenerator.h"
@@ -42,6 +47,10 @@ int main(int argc, char* argv[]) {
   auto handlersFactory = std::make_unique<HandlersFactory>();
   handlersFactory->registerHandler<EchoHandler>("echo");
   handlersFactory->registerHandler<PutTaskHandler>("putTask", dataStorage.get());
+  handlersFactory->registerHandler<GetTaskHandler>("getTask", dataStorage.get());
+  handlersFactory->registerHandler<AckTaskHandler>("ackTask", dataStorage.get());
+  handlersFactory->registerHandler<RegisterClientHandler>("reg", dataStorage.get());
+  handlersFactory->registerHandler<UnregisterClientHandler>("unreg", dataStorage.get());
 
   HTTPServerOptions options;
   options.threads = static_cast<size_t>(FLAGS_threads);

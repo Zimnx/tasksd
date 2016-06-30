@@ -1,22 +1,22 @@
-#include "GetTaskHandler.h"
+#include "UnregisterClientHandler.h"
 
 #include <proxygen/httpserver/RequestHandler.h>
 #include <proxygen/httpserver/ResponseBuilder.h>
 
 #include "RequestStats.h"
-#include "DataStorage.h"
+#include "IClientHandler.h"
 
 using namespace proxygen;
 
-const std::string GetTaskHandler::CLIENT_ID_HEADER("ClientId");
+const std::string UnregisterClientHandler::CLIENT_ID_HEADER("ClientId");
 
-GetTaskHandler::GetTaskHandler(RequestStats* requestStats, IDataStorage* dataStorage)
+UnregisterClientHandler::UnregisterClientHandler(RequestStats* requestStats, IClientHandler* clientHandler)
   : m_requestStats(requestStats)
-  , m_dataStorage(dataStorage)
+  , m_clientHandler(clientHandler)
   , m_error { false }
 {}
 
-void GetTaskHandler::onRequest(std::unique_ptr<HTTPMessage> message) noexcept {
+void UnregisterClientHandler::onRequest(std::unique_ptr<HTTPMessage> message) noexcept {
   m_requestStats->recordRequest();
   boost::optional<HTTPMethod> method = message->getMethod();
   if (!method || *method != HTTPMethod::GET) {
@@ -32,10 +32,10 @@ void GetTaskHandler::onRequest(std::unique_ptr<HTTPMessage> message) noexcept {
   m_clientId = folly::to<uint32_t>(headers.getSingleOrEmpty(CLIENT_ID_HEADER));
 }
 
-void GetTaskHandler::onBody(std::unique_ptr<folly::IOBuf>) noexcept {
+void UnregisterClientHandler::onBody(std::unique_ptr<folly::IOBuf>) noexcept {
 }
 
-void GetTaskHandler::onEOM() noexcept {
+void UnregisterClientHandler::onEOM() noexcept {
   if (m_error) {
     ResponseBuilder(downstream_)
       .status(m_errorCode, m_errorMessage)
@@ -44,28 +44,26 @@ void GetTaskHandler::onEOM() noexcept {
     return;
   }
 
-  IDataStorage::ClientTask task = m_dataStorage->get(m_clientId);
+  m_clientHandler->unregisterClient(m_clientId);
 
   ResponseBuilder(downstream_)
     .status(200, "OK")
-    .body(task.task->clone())
-    .header("TaskId", folly::to<std::string>(task.taskId))
     .header("Request-Number", folly::to<std::string>(m_requestStats->getRequestCount()))
     .sendWithEOM();
 }
 
-void GetTaskHandler::onUpgrade(UpgradeProtocol protocol) noexcept {
+void UnregisterClientHandler::onUpgrade(UpgradeProtocol protocol) noexcept {
 }
 
-void GetTaskHandler::requestComplete() noexcept {
+void UnregisterClientHandler::requestComplete() noexcept {
   delete this;
 }
 
-void GetTaskHandler::onError(ProxygenError err) noexcept {
+void UnregisterClientHandler::onError(ProxygenError err) noexcept {
   delete this;
 }
 
-void GetTaskHandler::setError(uint32_t code, std::string message) {
+void UnregisterClientHandler::setError(uint32_t code, std::string message) {
   m_error = true;
   m_errorCode = code;
   m_errorMessage = message;

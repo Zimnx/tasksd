@@ -19,7 +19,7 @@ void PutTaskHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
   boost::optional<HTTPMethod> method = headers->getMethod();
   if (!method || *method != HTTPMethod::POST) {
     m_error = true;
-    m_errorCode = 403;
+    m_errorCode = 400;
     m_errorString = "Wrong method, POST required";
   }
 }
