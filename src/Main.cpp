@@ -4,6 +4,7 @@
 #include <folly/io/async/EventBaseManager.h>
 #include <proxygen/httpserver/HTTPServer.h>
 #include <unistd.h>
+#include <utils/log/Logger.h>
 
 #include "EchoHandler.h"
 #include "HandlersFactory.h"
@@ -42,7 +43,9 @@ int main(int argc, char* argv[]) {
     CHECK(FLAGS_threads > 0);
   }
 
-  std::unique_ptr<IDataStorage> dataStorage = std::make_unique<DataStorage>(std::make_unique<IdGenerator>());
+  Logger logger;
+
+  auto dataStorage = std::make_unique<DataStorage>(std::make_unique<IdGenerator>());
 
   auto handlersFactory = std::make_unique<HandlersFactory>();
   handlersFactory->registerHandler<EchoHandler>("echo");
@@ -62,6 +65,7 @@ int main(int argc, char* argv[]) {
   HTTPServer server(std::move(options));
   server.bind(IPs);
 
+  log_info(logger, "Starting server at %d", FLAGS_http_port);
   std::thread t([&]() { server.start(); });
 
   t.join();

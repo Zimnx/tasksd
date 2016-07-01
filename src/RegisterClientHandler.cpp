@@ -14,12 +14,13 @@ RegisterClientHandler::RegisterClientHandler(RequestStats* requestStats, IClient
   : m_requestStats(requestStats)
   , m_clientHandler(clientHandler)
   , m_error { false }
+  , m_logger {}
 {}
 
 void RegisterClientHandler::onRequest(std::unique_ptr<HTTPMessage> message) noexcept {
   m_requestStats->recordRequest();
   boost::optional<HTTPMethod> method = message->getMethod();
-  if (!method || *method != HTTPMethod::GET) {
+  if (!method || *method != HTTPMethod::POST) {
     setError(400, "Wrong method, POST required");
     return;
   }
@@ -45,6 +46,7 @@ void RegisterClientHandler::onEOM() noexcept {
   }
 
   m_clientHandler->registerClient(m_clientId);
+  log_debug(m_logger, "Registered new client %d", m_clientId);
 
   ResponseBuilder(downstream_)
     .status(200, "OK")
@@ -63,7 +65,8 @@ void RegisterClientHandler::onError(ProxygenError err) noexcept {
   delete this;
 }
 
-void RegisterClientHandler::setError(uint32_t code, std::string message) {
+void RegisterClientHandler::setError(uint32_t code, const std::string& message) {
+  log_error(m_logger, "Error during register, code: %d, message: %s", code, message.c_str());
   m_error = true;
   m_errorCode = code;
   m_errorMessage = message;

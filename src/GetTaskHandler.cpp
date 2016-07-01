@@ -14,13 +14,14 @@ GetTaskHandler::GetTaskHandler(RequestStats* requestStats, IDataStorage* dataSto
   : m_requestStats(requestStats)
   , m_dataStorage(dataStorage)
   , m_error { false }
+  , m_logger {}
 {}
 
 void GetTaskHandler::onRequest(std::unique_ptr<HTTPMessage> message) noexcept {
   m_requestStats->recordRequest();
   boost::optional<HTTPMethod> method = message->getMethod();
   if (!method || *method != HTTPMethod::GET) {
-    setError(400, "Wrong method, POST required");
+    setError(400, "Wrong method, GET required");
     return;
   }
   HTTPHeaders headers = message->getHeaders();
@@ -48,7 +49,7 @@ void GetTaskHandler::onEOM() noexcept {
 
   ResponseBuilder(downstream_)
     .status(200, "OK")
-    .body(task.task->clone())
+    .body(task.task->l)
     .header("TaskId", folly::to<std::string>(task.taskId))
     .header("Request-Number", folly::to<std::string>(m_requestStats->getRequestCount()))
     .sendWithEOM();
@@ -66,6 +67,7 @@ void GetTaskHandler::onError(ProxygenError err) noexcept {
 }
 
 void GetTaskHandler::setError(uint32_t code, std::string message) {
+  log_debug(m_logger, "Error on getTask, code: %d, message: %s", code, message.c_str());
   m_error = true;
   m_errorCode = code;
   m_errorMessage = message;

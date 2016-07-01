@@ -12,12 +12,14 @@ PutTaskHandler::PutTaskHandler(RequestStats* requestStats, IDataStorage* dataSto
   : m_requestStats(requestStats)
   , m_dataStorage(dataStorage)
   , m_error { false }
+  , m_logger {}
 {}
 
 void PutTaskHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
   m_requestStats->recordRequest();
   boost::optional<HTTPMethod> method = headers->getMethod();
   if (!method || *method != HTTPMethod::POST) {
+    log_debug(m_logger, "Wrong method, POST required");
     m_error = true;
     m_errorCode = 400;
     m_errorString = "Wrong method, POST required";
@@ -42,6 +44,7 @@ void PutTaskHandler::onEOM() noexcept {
   }
 
   m_dataStorage->put(IDataStorage::Task{m_body.release()});
+  log_debug(m_logger, "Added new task");
 
   ResponseBuilder(downstream_)
     .status(200, "OK")

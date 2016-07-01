@@ -1,6 +1,7 @@
 #pragma once
 
 #include <folly/Memory.h>
+#include <utils/log/Logger.h>
 #include <proxygen/httpserver/RequestHandler.h>
 
 namespace proxygen {
@@ -32,11 +33,13 @@ private:
 
   static const std::string CLIENT_ID_HEADER;
 
-  void setError(uint32_t code, std::string message);
+  void setError(uint32_t code, const std::string& message);
 
   uint32_t m_clientId;
 
   bool m_error;
   std::string m_errorMessage;
   uint32_t m_errorCode;
+
+  Logger m_logger;
 };
